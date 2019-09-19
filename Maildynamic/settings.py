@@ -50,7 +50,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+FERNET_SECRET_KEY=b'wUHu0XHv2Cn-cmkLSXHypgUIB1ALOxKIGpRGZIV97RI='
 ROOT_URLCONF = 'Maildynamic.urls'
 
 TEMPLATES = [
