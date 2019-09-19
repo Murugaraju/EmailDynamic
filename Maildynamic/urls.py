@@ -20,5 +20,6 @@ from api.views import *
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('alertmail/',AlertMailList.as_view()),
-    path('alertmail/<int:pk>',AlertMailDetail.as_view())
+    path('alertmail/<int:pk>',AlertMailDetail.as_view()),
+    path('alertmail/test',test_alertmail)
 ]
