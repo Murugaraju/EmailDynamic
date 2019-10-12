@@ -7,7 +7,7 @@ from .serializers import *
 from rest_framework import status
 from rest_framework.decorators import api_view
 # Create your views here.
-
+#Just to check
 # For mail related
 from django.core import mail
 from django.core.mail.backends.smtp import EmailBackend
