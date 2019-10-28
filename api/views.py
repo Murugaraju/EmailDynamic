@@ -11,6 +11,8 @@ from rest_framework.decorators import api_view
 # For mail related
 from django.core import mail
 from django.core.mail.backends.smtp import EmailBackend
+from cryptography.fernet import Fernet
+from django.conf import settings
 
 
 class AlertMailList(APIView):
@@ -31,7 +33,7 @@ class AlertMailList(APIView):
         if len(AlertMailModel.objects.all())!=0:
             return Response({"SMPT Record already exists" : ["Try overriding existing or delete existing one"]},403)
         serializer = AlertMailSerializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             data=serializer.data
             del(data['mail_host_password'])
@@ -41,7 +43,7 @@ class AlertMailDetail(APIView):
     def get_object(self,pk):
         try:
             return AlertMailModel.objects.get(pk=pk)
-        except AlertMail.DoesNotExist:
+        except AlertMailModel.DoesNotExist:
             raise Http404
     def get(self,request,pk):
         alertmailob=self.get_object(pk)
@@ -75,7 +77,7 @@ def send_mail(subject, contact_list, body):
     try:
         mailob=AlertMailModel.objects.first()
         
-        con = mail.get_connection(host=mailob.host_smtpaddress,port=587,fail_silently=False)
+        con = mail.get_connection(host=mailob.host_smtpaddress,port=mailob.port,fail_silently=False)
         try:
             con.open()
             print('Django connected to the SMTP server')
@@ -85,19 +87,25 @@ def send_mail(subject, contact_list, body):
 
 
         
+        ferob=Fernet(settings.FERNET_SECRET_KEY)
 
-
-        host = 'smtp.gmail.com'
-        host_user = 'info.temporary.dev@gmail.com'
-        host_pass = 'demo123456'
-        host_port = 587
+        # host = 'smtp.gmail.com'
+        # host_user = 'info.temporary.dev@gmail.com'
+        # host_pass = 'demo123456'
+        # host_port = 587
+        
+        host = mailob.host_smtpaddress
+        host_user = mailob.host_mail
+        host_pass = ferob.decrypt(mailob.mail_host_password.encode()).decode()
+        host_port = mailob.port
+        tls=mailob.use_tls
 
         mail_obj = EmailBackend(
             host=host,
             port=host_port,
             password=host_pass,
             username=host_user,
-            use_tls=False,
+            use_tls=True,
             timeout=10
         )
 
@@ -105,7 +113,7 @@ def send_mail(subject, contact_list, body):
             subject=subject,
             body=body,
             from_email=host_user,
-            to=[contact_list],
+            to=contact_list,
             connection=con,
         )
         mail_obj.send_messages([msg])
@@ -116,5 +124,6 @@ def send_mail(subject, contact_list, body):
         return True
 
     except Exception as _error:
+        print(_error)
         print('Error in sending mail >> {} {}'.format(str(_error.smtp_code),_error.smtp_code.decode()))
         return False
