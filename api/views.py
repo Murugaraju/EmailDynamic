@@ -76,8 +76,14 @@ def send_mail(subject, contact_list, body):
         mailob=AlertMailModel.objects.first()
         
         con = mail.get_connection(host=mailob.host_smtpaddress,port=587,fail_silently=False)
-        con.open()
+        try:
+         con.open()
         print('Django connected to the SMTP server')
+        
+        except Exception as e:
+            print(e.errno,e.strerror)
+
+
         
 
 
@@ -91,7 +97,7 @@ def send_mail(subject, contact_list, body):
             port=host_port,
             password=host_pass,
             username=host_user,
-            use_tls=True,
+            use_tls=False,
             timeout=10
         )
 
@@ -110,5 +116,5 @@ def send_mail(subject, contact_list, body):
         return True
 
     except Exception as _error:
-        print('Error in sending mail >> {}'.format(_error))
+        print('Error in sending mail >> {} {}'.format(str(_error.smtp_code),_error.smtp_code.decode()))
         return False
