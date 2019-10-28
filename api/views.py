@@ -77,8 +77,8 @@ def send_mail(subject, contact_list, body):
         
         con = mail.get_connection(host=mailob.host_smtpaddress,port=587,fail_silently=False)
         try:
-         con.open()
-        print('Django connected to the SMTP server')
+            con.open()
+            print('Django connected to the SMTP server')
         
         except Exception as e:
             print(e.errno,e.strerror)
