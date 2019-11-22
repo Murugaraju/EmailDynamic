@@ -6,6 +6,7 @@ from .models import *
 from .serializers import *
 from rest_framework import status
 from rest_framework.decorators import api_view
+from django.template.loader import get_template
 # Create your views here.
 #Just to check
 # For mail related
@@ -13,6 +14,8 @@ from django.core import mail
 from django.core.mail.backends.smtp import EmailBackend
 from cryptography.fernet import Fernet
 from django.conf import settings
+from django.template.exceptions import TemplateDoesNotExist
+from django.utils.html import strip_tags
 
 
 class AlertMailList(APIView):
@@ -70,9 +73,16 @@ def test_alertmail(request):
     print("came in test_alertmail")
     if len(AlertMailModel.objects.all()) == 0:
         return Response({"SMPT settings record not exist" :["Try record smpt and reciepient details"]})
+    try:
+        a=get_template('index.html')
+    except TemplateDoesNotExist as e:
+        print("came in error ",e)
+        
+    # print(a.render(),dir(a))
+    send_mail('TestMail',a.render())
     return Response("working")
 
-def send_mail(subject, contact_list, body):
+def send_mail(subject, body):
 
     try:
         mailob=AlertMailModel.objects.first()
@@ -109,13 +119,14 @@ def send_mail(subject, contact_list, body):
             timeout=10
         )
 
-        msg = mail.EmailMessage(
+        msg = mail.EmailMultiAlternatives(
             subject=subject,
-            body=body,
+            body=strip_tags(body),
             from_email=host_user,
-            to=contact_list,
+            to=[mailob.receipient_mail],
             connection=con,
         )
+        msg.attach_alternative(body, "text/html")
         mail_obj.send_messages([msg])
         print('Message has been sent.')
 
