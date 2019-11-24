@@ -79,7 +79,7 @@ def test_alertmail(request):
         print("came in error ",e)
         
     # print(a.render(),dir(a))
-    send_mail('TestMail',a.render())
+    send_mail('TestMail',a.render({'data':'super bro it is working','st':'warning'}))
     return Response("working")
 
 def send_mail(subject, body):
